@@ -1,0 +1,119 @@
+To: modules@perl.org
+Subject: Namespace Request: Concierge
+
+PAUSE maintainers,
+
+I am requesting permission to use the top-level "Concierge" namespace for a
+new Perl distribution focused on web application user management services.
+
+## Namespace Request
+
+**Proposed Namespace:** Concierge
+**Module Prefixes:**
+- Concierge (platform documentation/overview)
+- Concierge::Sessions (session management)
+- Concierge::Auth (authentication services, future)
+- Concierge::Users (user data management, future)
+
+## Description
+
+Concierge is an integrated user management service platform for web applications.
+It provides a cohesive suite of modules that work together to offer:
+
+1. **Session Management** (Concierge::Sessions) - AVAILABLE NOW
+   - Multiple storage backends (SQLite, File)
+   - Sliding window session expiration
+   - Indefinite session support for application-wide state
+   - Opaque data storage (application controls data structure)
+   - Explicit persistence model (no auto-save)
+   - Single-session enforcement per user
+
+2. **Authentication Services** (Concierge::Auth) - IN DEVELOPMENT
+   - User authentication and authorization
+   - Password hashing and verification
+   - Integration with session management
+
+3. **User Data Management** (Concierge::Users) - IN DEVELOPMENT
+   - User profile storage
+   - User preference management
+   - Integration with authentication and sessions
+
+4. **Unified Service Composer** (Concierge) - FUTURE
+   - Combines Auth, Users, and Sessions
+   - Single API for complete user management
+
+## Justification for Top-Level Namespace
+
+I am requesting a top-level namespace rather than nesting under a category
+because:
+
+1. **Cohesive Ecosystem**: Concierge is designed as a complete system,
+   not a utility module. Similar to how Catalyst, Moose, and DBI have
+   top-level namespaces for comprehensive systems.
+
+2. **Distinctive Branding**: "Concierge" clearly conveys the purpose
+   (service-oriented user management) and is memorable.
+
+3. **Service Platform**: This is a service-oriented platform that composes
+   multiple distinct services (Auth, Users, Sessions) into a unified whole.
+
+4. **Standalone Components**: Each Concierge::* module can be used
+   independently or as part of the integrated platform.
+
+5. **User Need**: I have multiple web applications that currently have
+   scattered, inconsistent user management code. Concierge provides a
+   unified, professional solution that I believe will benefit the Perl
+   community.
+
+## Current Status
+
+- **Concierge::Sessions v0.7.0** is complete and production-ready
+  - 76 tests, all passing
+  - Full documentation (POD and README)
+  - Modern Perl (v5.36+)
+  - Working examples
+  - Ready for CPAN release
+
+- **Concierge.pm** provides platform overview and documentation
+
+- Additional modules (Auth, Users) are under active development
+
+## Distribution Details
+
+- **Author**: Bruce Van Allen (bva@cruzio.com)
+- **Perl Version Required**: 5.36+
+- **Dependencies**: DBI, DBD::SQLite, JSON::PP (all core/common)
+- **Testing**: Test2::V0, 76 tests with comprehensive coverage
+- **License**: Artistic License 2.0 (same as Perl)
+
+## Alternative Considered
+
+I considered using a nested namespace (e.g., Web::Concierge or
+User::Concierge), but these feel awkward because:
+
+- Web::Concierge suggests it's web-framework specific (it's not)
+- User::Concierge is too narrow (it's more than just user management)
+- Service::Concierge is less clear and the Service:: namespace is sparse
+
+The top-level Concierge namespace best represents a cohesive service platform.
+
+## Request
+
+I respectfully request permission to register and upload to the Concierge
+namespace on CPAN. I believe this module suite will provide value to the
+Perl community by offering a modern, cohesive user management solution.
+
+Thank you for your consideration.
+
+Bruce Van Allen
+bva@cruzio.com
+
+---
+
+## Additional Information
+
+**Repository Location**: Private (will be made public before first release)
+**First Release**: Concierge::Sessions v0.7.0
+**Timeline**: Ready to release within 1 week of namespace approval
+**Documentation**: Complete POD in all modules, comprehensive README.md
+**Examples**: Working example scripts included in distribution
