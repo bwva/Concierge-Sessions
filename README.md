@@ -3,17 +3,18 @@
 **Version:** 0.7.0
 
 Concierge::Sessions is a comprehensive session management system for Perl web applications,
-providing flexible storage backends, sliding window expiration, and opaque data storage.
+providing flexible storage backends, sliding window expiration, and application-controlled data storage.
 
 ## Features
 
 - **Multiple backends**: SQLite (production), File (testing/fallback)
 - **Sliding window expiration**: Sessions auto-extend when users are active
 - **Indefinite sessions**: Application-wide sessions that never expire
-- **Opaque data storage**: Application controls data structure
+- **Application-controlled data storage**: Store any data structure in sessions
 - **Explicit persistence**: No auto-save, changes tracked with dirty flag
 - **Single-session enforcement**: One active session per user
 - **Modern Perl**: v5.36+ with contemporary best practices
+- **Service layer pattern**: Non-fatal errors with descriptive messages
 
 ## Installation
 
@@ -60,6 +61,7 @@ my $result = $sessions->new_session(
 
 if ($result->{success}) {
     my $session = $result->{session};
+    my $session_id = $session->session_id();
 
     # Read session data
     my $data_result = $session->get_data();
@@ -123,7 +125,7 @@ my $result = $session->get_data();
 my $data = $result->{value};
 
 # Modify the data structure
-$data->{user_id} = 'alice';
+$data->{username} = 'alice';
 $data->{preferences}{language} = 'en';
 $data->{cart} = [@items];
 
@@ -241,18 +243,32 @@ my $session2 = $sessions->new_session(user_id => 'user123')->{session};
 
 ### Service Layer Pattern
 
-All methods return consistent result hashrefs, never croak after initialization:
+All methods return consistent result hashrefs. The module only dies/croaks during
+initialization if the backend cannot be initialized. All other failures are non-fatal:
 
 ```perl
-my $result = $sessions->get_session($session_id);
+# Factory methods return hashrefs
+my $result = $sessions->new_session(user_id => 'user123');
 
 if ($result->{success}) {
     my $session = $result->{session};
     # Use session
 } else {
-    warn "Error: " . $result->{message};
+    warn "Failed to create session: " . $result->{message};
+}
+
+# Session object methods also return hashrefs
+my $save_result = $session->save();
+
+if ($save_result->{success}) {
+    # Session saved successfully
+} else {
+    warn "Failed to save session: " . $save_result->{message};
 }
 ```
+
+**Default Session Timeout**: If not specified, sessions timeout after 3600 seconds (1 hour).
+Use `session_timeout => 'indefinite'` for sessions that never expire.
 
 ## Documentation
 
@@ -273,7 +289,7 @@ prove -lv t/
 prove -lv t/01-sessions-manager.t
 ```
 
-Test coverage: 76 tests across 4 test files, all passing.
+Test coverage: 75 tests across 4 test files, all passing.
 
 ## Examples
 
@@ -312,5 +328,5 @@ Bruce Van Allen <bva@cruzio.com>
 - Sliding window session expiration
 - Indefinite session support
 - Multiple backend support (SQLite, File)
-- 76 tests, all passing
+- 75 tests, all passing
 - Production-ready

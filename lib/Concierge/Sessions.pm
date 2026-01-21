@@ -75,12 +75,9 @@ sub get_session {
 	$ses_args{storage}	= $self->{storage};
 
     # Instantiate Refreshed Session object
-    my $session_result = Concierge::Sessions::Session->refresh( %ses_args );
-    unless ($session_result->{success}) {
-        return { success => 0, message => "get_session: " . $session_result->{message} };
-    }
+    my $session			= bless { %ses_args }, 'Concierge::Sessions::Session';
 
-	return $session_result;
+    return { success => 1, session => $session };
 }
 
 # Administrative methods - handled by backends

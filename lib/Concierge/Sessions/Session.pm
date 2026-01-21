@@ -32,15 +32,6 @@ sub new {
     return { success => 1, session => $self };
 }
 
-sub refresh {
-    my ($self, %args) = @_;
-
-    # Create Session object from session info prepared as %args
-    my $session = bless { %args }, __PACKAGE__;
-
-    return { success => 1, session => $session };
-}
-
 # Data access methods - work with entire data field
 sub get_data {
     my ($self) = @_;

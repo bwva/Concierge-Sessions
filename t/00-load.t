@@ -8,7 +8,6 @@ use lib 'lib';
 # Test that all Concierge::Sessions modules can be loaded and have correct versions
 
 # Load main module
-use Concierge;
 use Concierge::Sessions;
 use Concierge::Sessions::Session;
 use Concierge::Sessions::Base;
@@ -16,9 +15,6 @@ use Concierge::Sessions::SQLite;
 use Concierge::Sessions::File;
 
 # Check version numbers
-my $concierge_version = $Concierge::VERSION;
-ok($concierge_version, 'Concierge has a version');
-
 my $sessions_version = $Concierge::Sessions::VERSION;
 ok($sessions_version, 'Concierge::Sessions has a version');
 
@@ -26,7 +22,7 @@ ok($sessions_version, 'Concierge::Sessions has a version');
 can_ok('Concierge::Sessions', qw(new new_session get_session delete_session delete_user_sessions cleanup_expired));
 
 # Verify Concierge::Sessions::Session methods
-can_ok('Concierge::Sessions::Session', qw(new refresh get_data set_data save));
+can_ok('Concierge::Sessions::Session', qw(new get_data set_data save));
 can_ok('Concierge::Sessions::Session',
     qw(is_valid is_active is_expired is_dirty));
 can_ok('Concierge::Sessions::Session',
