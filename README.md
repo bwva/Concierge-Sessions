@@ -2,8 +2,13 @@
 
 **Version:** 0.7.0
 
-Concierge::Sessions is a comprehensive session management system for Perl web applications,
+Concierge::Sessions is a comprehensive session management system for Perl applications,
 providing flexible storage backends, sliding window expiration, and application-controlled data storage.
+
+Sessions enable applications to track user actions and maintain state across multiple operations.
+Keep session data in memory for fast access, persist to storage when needed, and maintain continuity
+between user interactions whether in online services, CLI tools, games, time-billing systems, or any
+application that needs to track state over time.
 
 ## Features
 
@@ -11,6 +16,7 @@ providing flexible storage backends, sliding window expiration, and application-
 - **Sliding window expiration**: Sessions auto-extend when users are active
 - **Indefinite sessions**: Application-wide sessions that never expire
 - **Application-controlled data storage**: Store any data structure in sessions
+- **In-memory performance**: Fast access to state and configuration
 - **Explicit persistence**: No auto-save, changes tracked with dirty flag
 - **Single-session enforcement**: One active session per user
 - **Modern Perl**: v5.36+ with contemporary best practices
