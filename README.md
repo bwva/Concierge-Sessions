@@ -12,13 +12,13 @@ application that needs to track state over time.
 
 ## Features
 
-- **Multiple backends**: SQLite (production), File (testing/fallback)
+- **Application-controlled data storage**: Store any serializable data structure in sessions
+- **In-memory performance**: Fast access to state and configuration
+- **Optional persistence**: Session tracks changes, saves when App tells it to
+- **Single-session enforcement**: Enforces one active session per user
 - **Sliding window expiration**: Sessions auto-extend when users are active
 - **Indefinite sessions**: Application-wide sessions that never expire
-- **Application-controlled data storage**: Store any data structure in sessions
-- **In-memory performance**: Fast access to state and configuration
-- **Explicit persistence**: No auto-save, changes tracked with dirty flag
-- **Single-session enforcement**: One active session per user
+- **Multiple backends**: SQLite (production), File (testing/small user population)
 - **Modern Perl**: v5.36+ with contemporary best practices
 - **Service layer pattern**: Non-fatal errors with descriptive messages
 

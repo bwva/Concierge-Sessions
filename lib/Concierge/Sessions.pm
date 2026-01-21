@@ -179,6 +179,30 @@ The manager handles session lifecycle operations including creation, retrieval,
 deletion, and cleanup. Individual session data operations are handled by the
 Concierge::Sessions::Session objects returned by this manager.
 
+=head1 FEATURES
+
+=over 4
+
+=item * **Application-controlled data storage** - Store any serializable data structure in sessions
+
+=item * **In-memory performance** - Fast access to state and configuration
+
+=item * **Optional persistence** - Session tracks changes, saves when App tells it to
+
+=item * **Single-session enforcement** - Enforces one active session per user
+
+=item * **Sliding window expiration** - Sessions auto-extend when users are active
+
+=item * **Indefinite sessions** - Application-wide sessions that never expire
+
+=item * **Multiple backends** - SQLite (production), File (testing/small user population)
+
+=item * **Modern Perl** - v5.36+ with contemporary best practices
+
+=item * **Service layer pattern** - Non-fatal errors with descriptive messages
+
+=back
+
 =head1 METHODS
 
 All methods return hashrefs with the following structure:
