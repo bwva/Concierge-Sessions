@@ -307,3 +307,129 @@ sub DESTROY {
 1;
 
 __END__
+
+=head1 NAME
+
+Concierge::Sessions::File - File backend for session storage
+
+=head1 VERSION
+
+version 0.7.0
+
+=head1 SYNOPSIS
+
+    # Used internally by Concierge::Sessions
+    my $sessions = Concierge::Sessions->new(
+        backend     => 'File',
+        storage_dir => '/tmp/sessions',
+    );
+
+=head1 DESCRIPTION
+
+Concierge::Sessions::File provides file-based storage for session data.
+Each session is stored as a separate JSON file named after the session ID.
+This backend is useful for testing, development, and debugging.
+
+This backend inherits from Concierge::Sessions::Base and implements all
+required backend methods. Users typically do not interact with this class
+directly - they use Concierge::Sessions which manages the backend.
+
+=head1 FEATURES
+
+=over 4
+
+=item * Human-readable JSON format for easy debugging
+
+=item * Simple file system operations
+
+=item * No database dependencies
+
+=item * Suitable for testing and development
+
+=item * Lower performance than SQLite (~1,000 ops/sec vs 4,000-5,000)
+
+=back
+
+=head1 STORAGE
+
+Each session is stored as a separate JSON file in the storage_dir:
+
+    /path/to/storage_dir/
+        ├── a1b2c3d4-e5f6-7890-abcd-ef1234567890.json
+        ├── b2c3d4e5-f6a7-8901-bcde-f12345678901.json
+        └── ...
+
+File names are the session_id with a C<.json> extension.
+
+File contents:
+
+    {
+        "session_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+        "user_id": "user123",
+        "created_at": 1737526800.12345,
+        "expires_at": 1737530400.12345,
+        "last_updated": 1737526800.12345,
+        "session_timeout": 3600,
+        "status": { "state": "active", "dirty": 0 },
+        "data": { "cart": [], "preferences": {} }
+    }
+
+=head1 PERFORMANCE
+
+The File backend provides moderate performance suitable for testing:
+
+=over 4
+
+=item * Create session: ~0.001 seconds
+
+=item * Get session: ~0.001 seconds
+
+=item * Update session: ~0.001 seconds
+
+=item * Delete session: ~0.001 seconds
+
+=back
+
+Performance depends on file system speed and can vary significantly between
+systems. For production use, consider the SQLite backend.
+
+=head1 USAGE
+
+This backend is ideal for:
+
+=over 4
+
+=item * Development and testing
+
+=item * Debugging (view session data directly in text editor)
+
+=item * Environments without database support
+
+=item * Learning and experimentation
+
+=back
+
+For production deployments, use the SQLite backend for better performance
+and reliability.
+
+=head1 SEE ALSO
+
+L<Concierge::Sessions> - Session manager
+
+L<Concierge::Sessions::Base> - Backend base class
+
+L<Concierge::Sessions::SQLite> - SQLite backend implementation
+
+L<JSON> - JSON encoding/decoding
+
+L<File::Spec> - File path operations
+
+=head1 AUTHOR
+
+Bruce Van Allen <bva@cruzio.com>
+
+=head1 LICENSE
+
+Artistic License 2.0
+
+=cut

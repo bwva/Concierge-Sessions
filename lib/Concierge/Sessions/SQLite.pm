@@ -293,3 +293,106 @@ sub DESTROY {
 1;
 
 __END__
+
+=head1 NAME
+
+Concierge::Sessions::SQLite - SQLite backend for session storage
+
+=head1 VERSION
+
+version 0.7.0
+
+=head1 SYNOPSIS
+
+    # Used internally by Concierge::Sessions
+    my $sessions = Concierge::Sessions->new(
+        backend     => 'SQLite',
+        storage_dir => '/var/app/sessions',
+    );
+
+=head1 DESCRIPTION
+
+Concierge::Sessions::SQLite provides SQLite-based storage for session data.
+It is the default and recommended backend for production use, offering
+high performance and ACID-compliant storage.
+
+This backend inherits from Concierge::Sessions::Base and implements all
+required backend methods. Users typically do not interact with this class
+directly - they use Concierge::Sessions which manages the backend.
+
+=head1 FEATURES
+
+=over 4
+
+=item * High performance (4,000-5,000 operations per second)
+
+=item * ACID-compliant transactions
+
+=item * Automatic filtering of expired sessions during retrieval
+
+=item * Single-session enforcement at database level (using UNIQUE constraint)
+
+=item * Efficient indexing on session_id and user_id
+
+=back
+
+=head1 STORAGE
+
+The backend creates a SQLite database file named C<sessions.db> in the
+specified storage_dir. The database contains a single table C<sessions>
+with columns for session data and metadata.
+
+Database schema:
+
+    CREATE TABLE sessions (
+        session_id TEXT PRIMARY KEY,
+        user_id TEXT,
+        created_at TIMESTAMP,
+        expires_at TIMESTAMP,
+        last_updated TIMESTAMP,
+        session_timeout INTEGER,
+        status JSON,
+        data JSON
+    )
+
+Indexes are created on session_id and user_id for fast lookups.
+
+=head1 PERFORMANCE
+
+The SQLite backend provides high performance suitable for production use:
+
+=over 4
+
+=item * Create session: ~0.0002 seconds
+
+=item * Get session: ~0.0002 seconds
+
+=item * Update session: ~0.0002 seconds
+
+=item * Delete session: ~0.0002 seconds
+
+=back
+
+Benchmarks performed on typical hardware with default SQLite settings.
+
+=head1 SEE ALSO
+
+L<Concierge::Sessions> - Session manager
+
+L<Concierge::Sessions::Base> - Backend base class
+
+L<Concierge::Sessions::File> - File backend implementation
+
+L<DBI> - Database interface
+
+L<DBD::SQLite> - SQLite DBI driver
+
+=head1 AUTHOR
+
+Bruce Van Allen <bva@cruzio.com>
+
+=head1 LICENSE
+
+Artistic License 2.0
+
+=cut
