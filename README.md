@@ -1,16 +1,19 @@
-# Concierge - Integrated User Management Service Platform
+# Concierge::Sessions - Session Management System
 
 **Version:** 0.7.0
 
-Concierge is a cohesive suite of Perl modules for web application user management,
-providing a complete service platform for authentication, user data management,
-and session management.
+Concierge::Sessions is a comprehensive session management system for Perl web applications,
+providing flexible storage backends, sliding window expiration, and opaque data storage.
 
-## Current Status
+## Features
 
-**Concierge::Sessions** is the first module available in the Concierge suite.
-
-Additional modules (Concierge::Auth, Concierge::Users) are under development.
+- **Multiple backends**: SQLite (production), File (testing/fallback)
+- **Sliding window expiration**: Sessions auto-extend when users are active
+- **Indefinite sessions**: Application-wide sessions that never expire
+- **Opaque data storage**: Application controls data structure
+- **Explicit persistence**: No auto-save, changes tracked with dirty flag
+- **Single-session enforcement**: One active session per user
+- **Modern Perl**: v5.36+ with contemporary best practices
 
 ## Installation
 
@@ -29,22 +32,13 @@ make install
 
 - Perl 5.36 or later
 - DBI (for SQLite backend)
-- JSON::PP (core in Perl 5.14+)
+- DBD::SQLite (for SQLite backend)
+- JSON::PP or JSON
+- Time::HiRes
+- File::Spec
 - Test2::V0 (for testing)
 
-## Concierge::Sessions - Session Management
-
-Comprehensive session management system with:
-
-- **Multiple backends**: SQLite (production), File (testing/fallback)
-- **Sliding window expiration**: Sessions auto-extend when users are active
-- **Indefinite sessions**: Application-wide sessions that never expire
-- **Opaque data storage**: Application controls data structure
-- **Explicit persistence**: No auto-save, changes tracked with dirty flag
-- **Single-session enforcement**: One active session per user
-- **Modern Perl**: v5.36+ with contemporary best practices
-
-### Quick Start
+## Quick Start
 
 ```perl
 use Concierge::Sessions;
@@ -83,16 +77,29 @@ if ($result->{success}) {
 my $retrieved = $sessions->get_session($session_id);
 ```
 
-### Features
+## Usage Patterns
 
-**Sliding Window Expiration**
-- Sessions automatically extend when `save()` is called
-- Active users stay logged in; inactive users expire
-- No special "extend session" logic needed
+### Sliding Window Expiration
 
-**Indefinite Sessions**
+Sessions automatically extend when `save()` is called:
+
 ```perl
-# Application-wide state tracking
+my $session = $sessions->new_session(
+    user_id => 'user123',
+    session_timeout => 3600,  # 1 hour
+)->{session};
+
+# User activity - save() extends the session
+$session->save();  # Session now expires 1 hour from now
+```
+
+Active users stay logged in; inactive users expire automatically.
+
+### Indefinite Sessions
+
+For application-wide state that never expires:
+
+```perl
 my $app_session = $sessions->new_session(
     user_id         => 'application_main',
     session_timeout => 'indefinite',
@@ -100,22 +107,163 @@ my $app_session = $sessions->new_session(
         metrics    => { requests_processed => 0 },
         subsystems => { database => 'connected' },
     },
+)->{session};
+
+# This session never expires
+$app_session->is_expired();  # Always returns false
+```
+
+### Data Access
+
+All data operations work with the entire data field:
+
+```perl
+# Get entire data structure
+my $result = $session->get_data();
+my $data = $result->{value};
+
+# Modify the data structure
+$data->{user_id} = 'alice';
+$data->{preferences}{language} = 'en';
+$data->{cart} = [@items];
+
+# Replace entire data field (marks session as dirty)
+$session->set_data($data);
+
+# Persist to backend (also extends session timeout)
+$session->save();
+```
+
+### Session Lifecycle
+
+```perl
+# Create
+my $result = $sessions->new_session(user_id => 'user123');
+my $session = $result->{session};
+
+# Check session status
+if ($session->is_valid()) {
+    # Session is active and not expired
+}
+
+# Retrieve later
+my $retrieved = $sessions->get_session($session->session_id());
+
+# Delete when done
+$sessions->delete_session($session->session_id());
+```
+
+### Backend Selection
+
+```perl
+# SQLite backend (production, high performance)
+my $sessions = Concierge::Sessions->new(
+    backend     => 'SQLite',
+    storage_dir => '/var/app/sessions',
+);
+
+# File backend (testing, human-readable)
+my $sessions = Concierge::Sessions->new(
+    backend     => 'File',
+    storage_dir => '/tmp/sessions',
 );
 ```
 
-**Multiple Backends**
-- **SQLite**: Default, high performance (4K-5K ops/sec)
-- **File**: Simple, human-readable JSON format
+## API Overview
 
-### Documentation
+### Concierge::Sessions (Factory)
+
+All factory methods return hashrefs with `{success => 1|0, ...}`:
+
+```perl
+$sessions->new_session(user_id => ..., data => ...)
+# Returns: {success => 1, session => $session_object}
+
+$sessions->get_session($session_id)
+# Returns: {success => 1, session => $session_object}
+
+$sessions->delete_session($session_id)
+# Returns: {success => 1, message => '...'}
+
+$sessions->delete_user_sessions($user_id)
+# Returns: {success => 1, deleted_count => 3}
+
+$sessions->cleanup_expired()
+# Returns: {success => 1, deleted_count => 5}
+```
+
+### Concierge::Sessions::Session (Session Object)
+
+```perl
+# Data methods
+$session->get_data()           # {success => 1, value => $data}
+$session->set_data($data)      # {success => 1}
+$session->save()               # {success => 1}
+
+# Status checks
+$session->is_valid()           # 1 if active and not expired
+$session->is_active()          # 1 if state is 'active'
+$session->is_expired()         # 1 if past expiration time
+$session->is_dirty()           # 1 if unsaved changes exist
+
+# Accessors
+$session->session_id()         # Session ID string
+$session->created_at()         # Creation timestamp
+$session->expires_at()         # Expiration timestamp
+$session->last_updated()       # Last update timestamp
+$session->storage_backend()    # Backend class name
+$session->status()             # {state => 'active', dirty => 0}
+```
+
+## Design Principles
+
+### Explicit Persistence
+
+No automatic saving on scope exit. You control when data is persisted:
+
+```perl
+$session->set_data($new_data);  # Changes in memory only
+$session->is_dirty();            # True - changes not saved
+$session->save();                # Persists to backend
+$session->is_dirty();            # False - saved
+```
+
+### Single-Session Enforcement
+
+Only one active session per user. Creating a new session invalidates old ones:
+
+```perl
+my $session1 = $sessions->new_session(user_id => 'user123')->{session};
+my $session2 = $sessions->new_session(user_id => 'user123')->{session};
+
+# $session1 is now deleted (enforced by backend)
+```
+
+### Service Layer Pattern
+
+All methods return consistent result hashrefs, never croak after initialization:
+
+```perl
+my $result = $sessions->get_session($session_id);
+
+if ($result->{success}) {
+    my $session = $result->{session};
+    # Use session
+} else {
+    warn "Error: " . $result->{message};
+}
+```
+
+## Documentation
 
 Full API documentation is available in the module POD:
+
 ```bash
 perldoc Concierge::Sessions
 perldoc Concierge::Sessions::Session
 ```
 
-### Testing
+## Testing
 
 ```bash
 # Run all tests
@@ -125,61 +273,44 @@ prove -lv t/
 prove -lv t/01-sessions-manager.t
 ```
 
-Test coverage: 75 tests across 4 test files, all passing.
+Test coverage: 76 tests across 4 test files, all passing.
 
-### Examples
+## Examples
 
 See the `examples/` directory for usage examples:
+
 - `04-indefinite-session.pl` - Application-wide session demonstration
 
-### Design Philosophy
+## Performance
 
-Concierge modules are designed to:
+- **SQLite backend**: 4,000-5,000 operations per second
+- **File backend**: ~1,000 operations per second
 
-- **Work standalone** or as part of the integrated platform
-- **Provide service-oriented APIs** with consistent return values
-- **Use modern Perl** (v5.36+) with contemporary best practices
-- **Support multiple backends** for flexibility
-- **Maintain clear separation** of concerns
+Benchmarks performed on typical hardware with default settings.
 
-### Roadmap
+## License
 
-The complete Concierge platform will provide:
+Artistic License 2.0 - See [LICENSE](LICENSE) file for details.
 
-- **Concierge::Auth** - Authentication services (in development)
-- **Concierge::Users** - User data management (in development)
-- **Concierge::Sessions** - Session management (AVAILABLE)
-- **Concierge** - Unified service composer (future)
+This is the same license as Perl itself.
 
-### Support & Contributing
+## Author
 
-Please report issues via the CPAN request tracker for this distribution.
+Bruce Van Allen <bva@cruzio.com>
 
-### Author
+## See Also
 
-Your Name
-
-### License
-
-This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl 5 itself. See [perlartistic](https://dev.perl.org/licenses/artistic.html).
-
-### See Also
-
-- [Concierge::Sessions](https://metacpan.org/pod/Concierge::Sessions)
 - [DBI](https://metacpan.org/pod/DBI) - Database interface
 - [JSON::PP](https://metacpan.org/pod/JSON::PP) - JSON handling
+- [Time::HiRes](https://metacpan.org/pod/Time::HiRes) - High resolution time
 
 ## Version History
 
 ### Version 0.7.0 (Current)
-- Renamed from Local::Sessions to Concierge::Sessions
-- New Concierge namespace for CPAN distribution
+
+- Initial release as Concierge::Sessions
 - Sliding window session expiration
 - Indefinite session support
 - Multiple backend support (SQLite, File)
-- 75 tests, all passing
+- 76 tests, all passing
 - Production-ready
-
-### Previous Versions
-- See Local::Sessions for development history
