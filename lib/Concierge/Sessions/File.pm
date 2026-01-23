@@ -36,7 +36,10 @@ sub create_session {
     # Delete any existing sessions for this user (enforce single session per user)
     $self->delete_user_sessions($user_id);
 
-    my $session_id		= $self->generate_session_id();
+    my $session_id		= $args{admin_session} 
+    	? '__admin_session__' 
+    	: $self->generate_session_id();
+
     my $session_file	= File::Spec->catfile($self->{storage_dir}, $session_id);
 
     # Write over session file if it already exists (unlikely)

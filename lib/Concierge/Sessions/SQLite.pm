@@ -71,7 +71,10 @@ sub create_session {
     $self->delete_user_sessions($user_id);
 
     # Build session_info structure
-    my $session_id		= $self->generate_session_id();
+    my $session_id		= $args{admin_session} 
+    	? '__admin_session__' 
+    	: $self->generate_session_id();
+
     my $now = time();
 
     # Handle session timeout: 'indefinite' or numeric value in seconds
