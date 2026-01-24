@@ -127,6 +127,11 @@ sub session_id {
     return $self->{session_id};
 }
 
+sub external_key {
+    my ($self) = @_;
+    return $self->{external_key};
+}
+
 sub storage_backend {
     my ($self) = @_;
     return ref($self->{storage});

@@ -6,6 +6,7 @@ use DBI;
 use File::Spec;
 use Carp qw(croak);
 use JSON;
+use Concierge::Auth;
 
 sub new {
     my ($class, %args) = @_;
@@ -32,6 +33,7 @@ sub new {
     my $result = $self->{dbh}->do(q{
         CREATE TABLE IF NOT EXISTS sessions (
             session_id TEXT PRIMARY KEY,
+            external_key TEXT,
             user_id TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             expires_at TIMESTAMP,
@@ -56,6 +58,11 @@ sub new {
         croak "Failed to create expiration index: " . $self->{dbh}->errstr;
     }
 
+    $result = $self->{dbh}->do(q{ CREATE INDEX IF NOT EXISTS idx_external_key ON sessions (external_key) });
+    unless ($result) {
+        croak "Failed to create external_key index: " . $self->{dbh}->errstr;
+    }
+
     return $self;
 }
 
@@ -71,9 +78,14 @@ sub create_session {
     $self->delete_user_sessions($user_id);
 
     # Build session_info structure
-    my $session_id		= $args{admin_session} 
-    	? '__admin_session__' 
+    my $session_id		= $args{admin_session}
+    	? '__admin_session__'
     	: $self->generate_session_id();
+
+    # Generate external_key (only for non-admin sessions)
+    my $external_key = $args{admin_session}
+    	? undef
+    	: Concierge::Auth->gen_random_string(13);
 
     my $now = time();
 
@@ -96,6 +108,7 @@ sub create_session {
     my $sth = $self->{dbh}->prepare(
         "INSERT INTO sessions (
         	session_id,
+        	external_key,
         	user_id,
         	created_at,
         	expires_at,
@@ -103,7 +116,7 @@ sub create_session {
         	session_timeout,
         	status,
         	data
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
     );
 
     unless ($sth) {
@@ -112,6 +125,7 @@ sub create_session {
 
     my $result = $sth->execute(
     	$session_id,
+    	$external_key,
     	$user_id,
     	$created_at,
     	$expires_at,

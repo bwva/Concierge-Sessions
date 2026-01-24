@@ -6,6 +6,7 @@ use parent 'Concierge::Sessions::Base';
 use File::Spec;
 use Carp qw(croak);
 use JSON;
+use Concierge::Auth;
 
 sub new {
     my ($class, %args) = @_;
@@ -36,9 +37,14 @@ sub create_session {
     # Delete any existing sessions for this user (enforce single session per user)
     $self->delete_user_sessions($user_id);
 
-    my $session_id		= $args{admin_session} 
-    	? '__admin_session__' 
+    my $session_id		= $args{admin_session}
+    	? '__admin_session__'
     	: $self->generate_session_id();
+
+    # Generate external_key (only for non-admin sessions)
+    my $external_key = $args{admin_session}
+    	? undef
+    	: Concierge::Auth->gen_random_string(13);
 
     my $session_file	= File::Spec->catfile($self->{storage_dir}, $session_id);
 
@@ -67,6 +73,7 @@ sub create_session {
     my $data	= $args{data} || {}; # for app data
     my $session_info = {
 		session_id	     => $session_id,
+		external_key    => $external_key,
 		user_id         => $user_id,
         created_at      => $now,
         expires_at      => $expiration,
