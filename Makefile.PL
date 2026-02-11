@@ -9,13 +9,11 @@ WriteMakefile(
     ABSTRACT         => 'Session management with multiple backend support',
     LICENSE          => 'artistic_2',
     MIN_PERL_VERSION => '5.036',
-    INSTALL_BASE     => undef,
 
     PREREQ_PM => {
         'Carp'       => 0,
         'DBI'        => 0,
         'DBD::SQLite' => 0,
-        'JSON::PP'   => 0,
         'Time::HiRes' => 0,
         'File::Spec' => 0,
         'JSON'       => 0,
@@ -33,6 +31,20 @@ WriteMakefile(
         'lib/Concierge/Sessions/Session.pm'     => '$(INST_LIB)/Concierge/Sessions/Session.pm',
         'lib/Concierge/Sessions/SQLite.pm'      => '$(INST_LIB)/Concierge/Sessions/SQLite.pm',
         'lib/Concierge/Sessions/File.pm'        => '$(INST_LIB)/Concierge/Sessions/File.pm',
+    },
+
+    META_MERGE => {
+        'meta-spec' => { version => 2 },
+        resources => {
+            repository => {
+                type => 'git',
+                url  => 'https://github.com/bwva/Concierge-Sessions.git',
+                web  => 'https://github.com/bwva/Concierge-Sessions',
+            },
+            bugtracker => {
+                web => 'https://github.com/bwva/Concierge-Sessions/issues',
+            },
+        },
     },
 
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },

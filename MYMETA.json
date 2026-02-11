@@ -37,7 +37,6 @@
             "DBI" : "0",
             "File::Spec" : "0",
             "JSON" : "0",
-            "JSON::PP" : "0",
             "Time::HiRes" : "0",
             "perl" : "5.036"
          }
@@ -49,6 +48,16 @@
       }
    },
    "release_status" : "stable",
+   "resources" : {
+      "bugtracker" : {
+         "web" : "https://github.com/bwva/Concierge-Sessions/issues"
+      },
+      "repository" : {
+         "type" : "git",
+         "url" : "https://github.com/bwva/Concierge-Sessions.git",
+         "web" : "https://github.com/bwva/Concierge-Sessions"
+      }
+   },
    "version" : "v0.8.1",
    "x_serialization_backend" : "JSON::PP version 4.16"
 }

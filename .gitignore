@@ -3,7 +3,6 @@ blib/
 inc/
 Makefile
 Makefile.old
-MANIFEST
 MANIFEST.bak
 _pm_to_blib
 *.bs
