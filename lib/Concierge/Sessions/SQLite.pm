@@ -1,4 +1,4 @@
-package Concierge::Sessions::SQLite;
+package Concierge::Sessions::SQLite v0.8.1;
 use v5.36;
 
 use parent 'Concierge::Sessions::Base';
@@ -6,7 +6,6 @@ use DBI;
 use File::Spec;
 use Carp qw(croak);
 use JSON;
-use Concierge::Auth;
 
 sub new {
     my ($class, %args) = @_;
@@ -33,7 +32,6 @@ sub new {
     my $result = $self->{dbh}->do(q{
         CREATE TABLE IF NOT EXISTS sessions (
             session_id TEXT PRIMARY KEY,
-            external_key TEXT,
             user_id TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             expires_at TIMESTAMP,
@@ -58,11 +56,6 @@ sub new {
         croak "Failed to create expiration index: " . $self->{dbh}->errstr;
     }
 
-    $result = $self->{dbh}->do(q{ CREATE INDEX IF NOT EXISTS idx_external_key ON sessions (external_key) });
-    unless ($result) {
-        croak "Failed to create external_key index: " . $self->{dbh}->errstr;
-    }
-
     return $self;
 }
 
@@ -75,17 +68,10 @@ sub create_session {
     my $user_id = $args{user_id};
 
     # Delete any existing sessions for this user (enforce single session per user)
-    $self->delete_user_sessions($user_id);
+    $self->delete_user_session($user_id);
 
     # Build session_info structure
-    my $session_id		= $args{admin_session}
-    	? '__admin_session__'
-    	: $self->generate_session_id();
-
-    # Generate external_key (only for non-admin sessions)
-    my $external_key = $args{admin_session}
-    	? undef
-    	: Concierge::Auth->gen_random_string(13);
+    my $session_id		= $self->generate_session_id();
 
     my $now = time();
 
@@ -108,7 +94,6 @@ sub create_session {
     my $sth = $self->{dbh}->prepare(
         "INSERT INTO sessions (
         	session_id,
-        	external_key,
         	user_id,
         	created_at,
         	expires_at,
@@ -116,7 +101,7 @@ sub create_session {
         	session_timeout,
         	status,
         	data
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
     );
 
     unless ($sth) {
@@ -125,7 +110,6 @@ sub create_session {
 
     my $result = $sth->execute(
     	$session_id,
-    	$external_key,
     	$user_id,
     	$created_at,
     	$expires_at,
@@ -254,7 +238,7 @@ sub delete_session {
     return { success => 1 };
 }
 
-sub cleanup_expired {
+sub cleanup_sessions {
     my ($self) = shift;
 
     # Delete only sessions with numeric expiration times that have passed
@@ -273,11 +257,14 @@ sub cleanup_expired {
 
     # Convert 0E0 to plain 0 if no rows deleted
     my $deleted_count = $result eq '0E0' ? 0 : $result;
+    
+    my $active	= $self->{dbh}->selectcol_arrayref(qq{SELECT session_id FROM sessions WHERE session_id != '' });
 
-    return { success => 1, deleted_count => $deleted_count };
+    return { success => 1, deleted_count => $deleted_count, active => $active };
 }
 
-sub delete_user_sessions {
+# sub delete_user_sessions {
+sub delete_user_session {
     my ($self, $user_id) = @_;
 
     unless ($user_id) {
@@ -317,13 +304,13 @@ Concierge::Sessions::SQLite - SQLite backend for session storage
 
 =head1 VERSION
 
-version 0.7.0
+version 0.8.1
 
 =head1 SYNOPSIS
 
     # Used internally by Concierge::Sessions
     my $sessions = Concierge::Sessions->new(
-        backend     => 'SQLite',
+        backend     => 'database',
         storage_dir => '/var/app/sessions',
     );
 

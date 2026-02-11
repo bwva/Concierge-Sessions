@@ -1,4 +1,4 @@
-package Concierge::Sessions::File;
+package Concierge::Sessions::File v0.8.1;
 use v5.36;
 
 use parent 'Concierge::Sessions::Base';
@@ -6,7 +6,6 @@ use parent 'Concierge::Sessions::Base';
 use File::Spec;
 use Carp qw(croak);
 use JSON;
-use Concierge::Auth;
 
 sub new {
     my ($class, %args) = @_;
@@ -35,16 +34,9 @@ sub create_session {
     my $user_id = $args{user_id};
 
     # Delete any existing sessions for this user (enforce single session per user)
-    $self->delete_user_sessions($user_id);
+    $self->delete_user_session($user_id);
 
-    my $session_id		= $args{admin_session}
-    	? '__admin_session__'
-    	: $self->generate_session_id();
-
-    # Generate external_key (only for non-admin sessions)
-    my $external_key = $args{admin_session}
-    	? undef
-    	: Concierge::Auth->gen_random_string(13);
+    my $session_id		= $self->generate_session_id();
 
     my $session_file	= File::Spec->catfile($self->{storage_dir}, $session_id);
 
@@ -73,7 +65,6 @@ sub create_session {
     my $data	= $args{data} || {}; # for app data
     my $session_info = {
 		session_id	     => $session_id,
-		external_key    => $external_key,
 		user_id         => $user_id,
         created_at      => $now,
         expires_at      => $expiration,
@@ -232,7 +223,7 @@ sub delete_session {
     return { success => 1 };
 }
 
-sub cleanup_expired {
+sub cleanup_sessions {
     my ($self) = @_;
 
     my $dh;
@@ -240,14 +231,18 @@ sub cleanup_expired {
         return { success => 0, message => "Cannot open sessions directory: $!" };
     }
 
-    my $deleted_count = 0;
+    my $deleted_count	= 0;
+    my $active			= [];
     while (my $file = readdir($dh)) {
         next if $file =~ /^\.\.?$/;  # Skip . and ..
         # Skip any files in the dir with suffixes, which session files don't have
         next if $file =~ /\.\w{1,6}$/;
 		# Session files are named after session_ids, so this works:
         my $get_result = $self->get_session_info($file);
-        unless ($get_result->{success}) {
+        if ($get_result->{success}) {
+        	push $active->@* => $file;
+        }
+        else {
             # Session is either expired or invalid, delete the file
             my $delete_result = $self->delete_session($file);
             if ($delete_result->{success}) {
@@ -260,10 +255,10 @@ sub cleanup_expired {
         return { success => 0, message => "Error closing sessions directory: $!" };
     }
 
-    return { success => 1, deleted_count => $deleted_count };
+    return { success => 1, deleted_count => $deleted_count, active => $active };
 }
 
-sub delete_user_sessions {
+sub delete_user_session {
     my ($self, $user_id) = @_;
 
     unless ($user_id) {
@@ -324,13 +319,13 @@ Concierge::Sessions::File - File backend for session storage
 
 =head1 VERSION
 
-version 0.7.0
+version 0.8.1
 
 =head1 SYNOPSIS
 
     # Used internally by Concierge::Sessions
     my $sessions = Concierge::Sessions->new(
-        backend     => 'File',
+        backend     => 'file',
         storage_dir => '/tmp/sessions',
     );
 
@@ -365,11 +360,11 @@ directly - they use Concierge::Sessions which manages the backend.
 Each session is stored as a separate JSON file in the storage_dir:
 
     /path/to/storage_dir/
-        ├── a1b2c3d4-e5f6-7890-abcd-ef1234567890.json
-        ├── b2c3d4e5-f6a7-8901-bcde-f12345678901.json
+        ├── a1b2c3d4-e5f6-7890-abcd-ef1234567890
+        ├── b2c3d4e5-f6a7-8901-bcde-f12345678901
         └── ...
 
-File names are the session_id with a C<.json> extension.
+File names are the session_id (no extension).
 
 File contents:
 

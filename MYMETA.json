@@ -1,5 +1,5 @@
 {
-   "abstract" : "Session management system with factory pattern and multiple backend support",
+   "abstract" : "Session management with multiple backend support",
    "author" : [
       "Bruce Van Allen <bva@cruzio.com>"
    ],
@@ -39,7 +39,7 @@
             "JSON" : "0",
             "JSON::PP" : "0",
             "Time::HiRes" : "0",
-            "perl" : "5.360"
+            "perl" : "5.036"
          }
       },
       "test" : {
@@ -49,6 +49,6 @@
       }
    },
    "release_status" : "stable",
-   "version" : "v0.7.0",
+   "version" : "v0.8.1",
    "x_serialization_backend" : "JSON::PP version 4.16"
 }

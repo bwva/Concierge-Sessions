@@ -1,5 +1,5 @@
 ---
-abstract: 'Session management system with factory pattern and multiple backend support'
+abstract: 'Session management with multiple backend support'
 author:
   - 'Bruce Van Allen <bva@cruzio.com>'
 build_requires:
@@ -26,6 +26,6 @@ requires:
   JSON: '0'
   JSON::PP: '0'
   Time::HiRes: '0'
-  perl: '5.360'
-version: v0.7.0
+  perl: '5.036'
+version: v0.8.1
 x_serialization_backend: 'CPAN::Meta::YAML version 0.020'

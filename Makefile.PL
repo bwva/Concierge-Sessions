@@ -3,12 +3,12 @@ use warnings;
 use ExtUtils::MakeMaker;
 
 WriteMakefile(
-    NAME             => 'Concierge-Sessions',
+    NAME             => 'Concierge::Sessions',
     VERSION_FROM     => 'lib/Concierge/Sessions.pm',
     AUTHOR           => 'Bruce Van Allen <bva@cruzio.com>',
-    ABSTRACT         => 'Session management system with factory pattern and multiple backend support',
+    ABSTRACT         => 'Session management with multiple backend support',
     LICENSE          => 'artistic_2',
-    MIN_PERL_VERSION => '5.36',
+    MIN_PERL_VERSION => '5.036',
     INSTALL_BASE     => undef,
 
     PREREQ_PM => {

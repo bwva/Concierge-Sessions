@@ -10,7 +10,7 @@ use Concierge::Sessions;
 # useful for tracking application-wide state separate from user sessions.
 
 my $manager = Concierge::Sessions->new(
-    backend     => 'SQLite',
+    backend     => 'database',
     storage_dir => '/tmp/app_sessions_example',
 );
 

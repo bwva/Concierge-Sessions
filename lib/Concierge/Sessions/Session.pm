@@ -1,4 +1,4 @@
-package Concierge::Sessions::Session;
+package Concierge::Sessions::Session v0.8.1;
 use v5.36;
 
 # ABSTRACT: Individual session objects created by Concierge::Sessions
@@ -48,7 +48,7 @@ sub set_data {
     # $value replaces entire data field
     $self->{data} 			= $value;
 
-    # Mark as dirty - only changed in memory, not in storage
+    # Only changed in memory, not in storage
     $self->{status}{dirty}	= 1;
 
     return { success => 1 };
@@ -127,11 +127,6 @@ sub session_id {
     return $self->{session_id};
 }
 
-sub external_key {
-    my ($self) = @_;
-    return $self->{external_key};
-}
-
 sub storage_backend {
     my ($self) = @_;
     return ref($self->{storage});
@@ -167,7 +162,7 @@ Concierge::Sessions::Session - Individual session objects for data access and pe
 
 =head1 VERSION
 
-version 0.7.0
+version 0.8.1
 
 =head1 SYNOPSIS
 
@@ -176,7 +171,7 @@ Session objects are created by Concierge::Sessions factory methods:
     use Concierge::Sessions;
 
     my $sessions = Concierge::Sessions->new(
-        backend     => 'SQLite',
+        backend     => 'database',
         storage_dir => '/var/app/sessions',
     );
 

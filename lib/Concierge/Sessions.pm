@@ -1,4 +1,4 @@
-package Concierge::Sessions v0.7.0;
+package Concierge::Sessions v0.8.1;
 use v5.36;
 
 # ABSTRACT: Session manager with flexible session information storage
@@ -17,13 +17,25 @@ our $DEFAULT_SESSION_TIMEOUT	= 3600;
 sub new {
     my ($class, %args) = @_;
 
-    # Determine backend class (default: SQLite, can be specified as 'SQLite' or 'File')
-    # SQLite creates and updates session records
-    # File creates and overwrites session files as JSON
+    # Determine backend class (can be specified as 'database' or 'file')
+    # database (default): SQLite creates and updates session records
+    # file: File creates and overwrites session files as JSON
     my $backend_param = $args{backend} || $DEFAULT_BACKEND;
-    my $backend_class = $backend_param =~ /^Concierge::Sessions::/
-        ? $backend_param
-        : "Concierge::Sessions::$backend_param";
+
+    # Handle case-insensitive backend names and map to module names
+    unless ($backend_param =~ /^Concierge::Sessions::/) {
+        my $backend_lc = lc($backend_param);
+        if ($backend_lc eq 'database') {
+            $backend_param = 'Concierge::Sessions::SQLite';
+        } elsif ($backend_lc eq 'file') {
+            $backend_param = 'Concierge::Sessions::File';
+        } else {
+            # For backwards compatibility, still support module name suffixes
+            $backend_param = "Concierge::Sessions::$backend_param";
+        }
+    }
+
+    my $backend_class = $backend_param;
 
     # Create backend instance
     my $backend;
@@ -83,9 +95,9 @@ sub get_session {
 # Administrative methods - handled by backends
 
 # delete sessions that have expired
-sub cleanup_expired {
+sub cleanup_sessions {
     my ($self) = @_;
-    return $self->{storage}->cleanup_expired();
+    return $self->{storage}->cleanup_sessions();
 }
 
 # delete session by session_id
@@ -100,14 +112,15 @@ sub delete_session {
 }
 
 # delete session by user_id
-sub delete_user_sessions {
+# sub delete_user_sessions {
+sub delete_user_session {
     my ($self, $user_id) = @_;
 
     unless ($user_id) {
         return { success => 0, message => "user_id required to delete user sessions" };
     }
 
-    return $self->{storage}->delete_user_sessions($user_id);
+    return $self->{storage}->delete_user_session($user_id);
 }
 
 
@@ -121,7 +134,7 @@ Concierge::Sessions - Session manager with factory pattern and multiple backend 
 
 =head1 VERSION
 
-version 0.7.0
+v0.8.1
 
 =head1 SYNOPSIS
 
@@ -129,7 +142,7 @@ version 0.7.0
 
     # Create session manager
     my $sessions = Concierge::Sessions->new(
-        backend     => 'SQLite',
+        backend     => 'database',
         storage_dir => '/var/app/sessions',
     );
 
@@ -163,10 +176,10 @@ version 0.7.0
     $sessions->delete_session($session_id);
 
     # Delete all sessions for a user
-    $sessions->delete_user_sessions('user123');
+    $sessions->delete_user_session('user123');
 
     # Clean up expired sessions
-    my $cleanup = $sessions->cleanup_expired();
+    my $cleanup = $sessions->cleanup_sessions();
     print "Removed $cleanup->{deleted_count} expired sessions\n";
 
 =head1 DESCRIPTION
@@ -195,7 +208,7 @@ Concierge::Sessions::Session objects returned by this manager.
 
 =item * **Indefinite sessions** - Application-wide sessions that never expire
 
-=item * **Multiple backends** - SQLite (production), File (testing/small user population)
+=item * **Multiple backends** - Database/SQLite (production), File (testing/small user population)
 
 =item * **Modern Perl** - v5.36+ with contemporary best practices
 
@@ -215,7 +228,7 @@ All methods return hashrefs with the following structure:
 Creates a new session manager instance.
 
     my $sessions = Concierge::Sessions->new(
-        backend     => 'SQLite',      # Optional: 'SQLite' or 'File' (default: 'SQLite')
+        backend     => 'database',     # Optional: 'database' or 'file' (default: 'database')
         storage_dir => '/path/to/dir', # Required: directory for session storage
     );
 
@@ -223,7 +236,8 @@ Parameters:
 
 =over 4
 
-=item * C<backend> - Backend type to use. Either 'SQLite' (default) or 'File'.
+=item * C<backend> - Backend type to use. Either 'database' (default) or 'file'.
+                   Case-insensitive.
 
 =item * C<storage_dir> - Directory where session data will be stored. Required.
                       The directory will be created if it doesn't exist.
@@ -328,11 +342,11 @@ Returns:
 If the session doesn't exist, the operation is still considered successful
 (no error is returned).
 
-=head2 delete_user_sessions
+=head2 delete_user_session
 
 Deletes all sessions for a specific user.
 
-    my $result = $sessions->delete_user_sessions($user_id);
+    my $result = $sessions->delete_user_session($user_id);
 
 Parameters:
 
@@ -351,11 +365,11 @@ Returns:
 
 Useful for logging out a user from all devices/sessions.
 
-=head2 cleanup_expired
+=head2 cleanup_sessions
 
 Removes all expired sessions from the backend storage.
 
-    my $result = $sessions->cleanup_expired();
+    my $result = $sessions->cleanup_sessions();
 
 Parameters:
 
@@ -377,12 +391,12 @@ expired sessions and reclaim storage space.
 
 Concierge::Sessions supports multiple storage backends:
 
-=head2 SQLite
+=head2 database
 
-The default and recommended backend for production use.
+The default and recommended backend for production use. Uses SQLite for storage.
 
     my $sessions = Concierge::Sessions->new(
-        backend     => 'SQLite',
+        backend     => 'database',
         storage_dir => '/var/app/sessions',
     );
 
@@ -402,12 +416,12 @@ Features:
 
 Requires: L<DBI> and L<DBD::SQLite>
 
-=head2 File
+=head2 file
 
 Simple file-based backend using JSON format. Useful for testing and development.
 
     my $sessions = Concierge::Sessions->new(
-        backend     => 'File',
+        backend     => 'file',
         storage_dir => '/tmp/sessions',
     );
 
@@ -446,7 +460,7 @@ Successful operations:
         message => "Session deleted",
     }
 
-    # For delete_user_sessions and cleanup_expired
+    # For delete_user_session and cleanup_sessions
     {
         success => 1,
         deleted_count => 5,
@@ -468,7 +482,7 @@ Always check C<$result->{success}> before accessing other fields.
     use Concierge::Sessions;
 
     my $sessions = Concierge::Sessions->new(
-        backend     => 'SQLite',
+        backend     => 'database',
         storage_dir => '/var/app/sessions',
     );
 
@@ -507,13 +521,13 @@ Always check C<$result->{success}> before accessing other fields.
 =head2 Logout from All Devices
 
     # Delete all sessions for a user
-    my $result = $sessions->delete_user_sessions('user123');
+    my $result = $sessions->delete_user_session('user123');
     print "Logged out from $result->{deleted_count} devices\n";
 
 =head2 Periodic Cleanup
 
     # Run this periodically (e.g., from cron)
-    my $cleanup = $sessions->cleanup_expired();
+    my $cleanup = $sessions->cleanup_sessions();
     print "Cleaned up $cleanup->{deleted_count} expired sessions\n";
 
 =head1 SINGLE-SESSION ENFORCEMENT

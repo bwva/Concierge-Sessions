@@ -1,4 +1,4 @@
-package Concierge::Sessions::Base v0.7.0;
+package Concierge::Sessions::Base v0.8.1;
 use v5.36;
 
 sub new {
@@ -11,8 +11,8 @@ sub create_session { die "Subclass must implement create_session" }
 sub get_session_info { die "Subclass must implement get_session_info" }
 sub update_session { die "Subclass must implement update_session" }
 sub delete_session { die "Subclass must implement delete_session" }
-sub cleanup_expired { die "Subclass must implement cleanup_expired" }
-sub delete_user_sessions { die "Subclass must implement delete_user_sessions" }
+sub cleanup_sessions { die "Subclass must implement cleanup_sessions" }
+sub delete_user_session { die "Subclass must implement delete_user_session" }
 
 # Utilities
 sub generate_session_id {
@@ -43,7 +43,7 @@ Concierge::Sessions::Base - Base class for session storage backends
 
 =head1 VERSION
 
-version 0.7.0
+version 0.8.1
 
 =head1 SYNOPSIS
 
@@ -159,11 +159,11 @@ Must return:
         message => "Session deleted",
     }
 
-=head2 cleanup_expired
+=head2 cleanup_sessions
 
 Removes all expired sessions from backend storage.
 
-    my $result = $backend->cleanup_expired();
+    my $result = $backend->cleanup_sessions();
 
 Must return:
 
@@ -172,11 +172,11 @@ Must return:
         deleted_count => 15,
     }
 
-=head2 delete_user_sessions
+=head2 delete_user_session
 
 Deletes all sessions for a specific user from backend storage.
 
-    my $result = $backend->delete_user_sessions($user_id);
+    my $result = $backend->delete_user_session($user_id);
 
 Must return:
 

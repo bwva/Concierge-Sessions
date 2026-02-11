@@ -1,6 +1,6 @@
 # Concierge::Sessions - Session Management System
 
-**Version:** 0.7.0
+**Version:** 0.8.1
 
 Concierge::Sessions is a comprehensive session management system for Perl applications,
 providing flexible storage backends, sliding window expiration, and application-controlled data storage.
@@ -18,7 +18,7 @@ application that needs to track state over time.
 - **Single-session enforcement**: Enforces one active session per user
 - **Sliding window expiration**: Sessions auto-extend when users are active
 - **Indefinite sessions**: Application-wide sessions that never expire
-- **Multiple backends**: SQLite (production), File (testing/small user population)
+- **Multiple backends**: database (production), file (testing/small user population)
 - **Modern Perl**: v5.36+ with contemporary best practices
 - **Service layer pattern**: Non-fatal errors with descriptive messages
 
@@ -52,7 +52,7 @@ use Concierge::Sessions;
 
 # Create session manager
 my $sessions = Concierge::Sessions->new(
-    backend => 'SQLite',
+    backend => 'database',
     storage_dir => '/var/app/sessions',
 );
 
@@ -164,15 +164,15 @@ $sessions->delete_session($session->session_id());
 ### Backend Selection
 
 ```perl
-# SQLite backend (production, high performance)
+# Database backend (production, high performance)
 my $sessions = Concierge::Sessions->new(
-    backend     => 'SQLite',
+    backend     => 'database',
     storage_dir => '/var/app/sessions',
 );
 
 # File backend (testing, human-readable)
 my $sessions = Concierge::Sessions->new(
-    backend     => 'File',
+    backend     => 'file',
     storage_dir => '/tmp/sessions',
 );
 ```
@@ -193,10 +193,10 @@ $sessions->get_session($session_id)
 $sessions->delete_session($session_id)
 # Returns: {success => 1, message => '...'}
 
-$sessions->delete_user_sessions($user_id)
+$sessions->delete_user_session($user_id)
 # Returns: {success => 1, deleted_count => 3}
 
-$sessions->cleanup_expired()
+$sessions->cleanup_sessions()
 # Returns: {success => 1, deleted_count => 5}
 ```
 
@@ -328,11 +328,17 @@ Bruce Van Allen <bva@cruzio.com>
 
 ## Version History
 
-### Version 0.7.0 (Current)
+### Version 0.8.1 (Current)
+
+- Backend parameter names: 'database' and 'file' (case-insensitive)
+- Method name updates: delete_user_session, cleanup_sessions
+- Version alignment across all modules
+
+### Version 0.7.0
 
 - Initial release as Concierge::Sessions
 - Sliding window session expiration
 - Indefinite session support
-- Multiple backend support (SQLite, File)
+- Multiple backend support (database, file)
 - 75 tests, all passing
 - Production-ready
