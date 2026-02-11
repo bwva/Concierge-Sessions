@@ -36,7 +36,7 @@
             "DBD::SQLite" : "0",
             "DBI" : "0",
             "File::Spec" : "0",
-            "JSON" : "0",
+            "JSON::PP" : "0",
             "Time::HiRes" : "0",
             "perl" : "5.036"
          }

@@ -4,7 +4,6 @@ use v5.36;
 # ABSTRACT: Individual session objects created by Concierge::Sessions
 
 use Time::HiRes qw(time);
-use JSON::PP;
 use Carp qw(croak);
 
 sub new {
