@@ -5,7 +5,7 @@ use parent 'Concierge::Sessions::Base';
 
 use File::Spec;
 use Carp qw(croak);
-use JSON;
+use JSON::PP;
 
 sub new {
     my ($class, %args) = @_;
@@ -78,7 +78,7 @@ sub create_session {
     };
 
     # Encode to JSON with pretty formatting and write with trailing newline
-    my $json = JSON->new->utf8->pretty->encode($session_info);
+    my $json = JSON::PP->new->utf8->pretty->encode($session_info);
     unless (print $fh $json, "\n") {
         close $fh;
         return { success => 0, message => "Cannot write to session file: $!" };
@@ -123,7 +123,7 @@ sub get_session_info {
     # Decode JSON
     my $session_info;
     eval {
-        $session_info = JSON->new->utf8->decode($json);
+        $session_info = JSON::PP->new->utf8->decode($json);
     };
     if ($@) {
         return { success => 0, message => "Invalid JSON in session file: $@" };
@@ -168,7 +168,7 @@ sub update_session {
     my $session_info;
     if ($json) {
 		eval {
-			$session_info = JSON->new->utf8->decode($json);
+			$session_info = JSON::PP->new->utf8->decode($json);
 		};
 		if ($@) {
 			return { success => 0, message => "Invalid JSON in session file: $@" };
@@ -188,7 +188,7 @@ sub update_session {
     $session_info->{last_updated} = time();
 
     # Encode to JSON with pretty formatting and write to file with trailing newline
-    my $new_json = JSON->new->utf8->pretty->encode($session_info);
+    my $new_json = JSON::PP->new->utf8->pretty->encode($session_info);
     $fh->truncate(0);
     seek $fh, 0, 0;
     unless (print $fh $new_json, "\n") {
@@ -288,7 +288,7 @@ sub delete_user_session {
 
         my $session_info;
         eval {
-            $session_info = JSON->new->utf8->decode($json);
+            $session_info = JSON::PP->new->utf8->decode($json);
         };
         next if $@;  # Skip invalid files
 
@@ -425,7 +425,7 @@ L<Concierge::Sessions::Base> - Backend base class
 
 L<Concierge::Sessions::SQLite> - SQLite backend implementation
 
-L<JSON> - JSON encoding/decoding
+L<JSON::PP> - JSON encoding/decoding
 
 L<File::Spec> - File path operations
 

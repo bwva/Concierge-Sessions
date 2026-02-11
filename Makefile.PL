@@ -16,7 +16,7 @@ WriteMakefile(
         'DBD::SQLite' => 0,
         'Time::HiRes' => 0,
         'File::Spec' => 0,
-        'JSON'       => 0,
+        'JSON::PP'   => 0,
     },
 
     TEST_REQUIRES => {

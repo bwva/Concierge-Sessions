@@ -5,7 +5,7 @@ use parent 'Concierge::Sessions::Base';
 use DBI;
 use File::Spec;
 use Carp qw(croak);
-use JSON;
+use JSON::PP;
 
 sub new {
     my ($class, %args) = @_;
@@ -87,9 +87,9 @@ sub create_session {
     my $created_at		= $now;
     my $last_updated	= $now;
     my $status			= { state => 'active', dirty => 0 };
-    my $status_json 	= JSON->new->utf8->encode( $status );
+    my $status_json 	= JSON::PP->new->utf8->encode( $status );
     my $data			= $args{data} || {}; # for app data
-    my $data_json		= JSON->new->utf8->encode( $data );
+    my $data_json		= JSON::PP->new->utf8->encode( $data );
 
     my $sth = $self->{dbh}->prepare(
         "INSERT INTO sessions (
@@ -155,8 +155,8 @@ sub get_session_info {
     }
 
     # Decode session_info from JSON to hashref
-	$session_info->{status}	= JSON->new->utf8->decode( $session_info->{status} );
-	$session_info->{data}	= JSON->new->utf8->decode( $session_info->{data} );
+	$session_info->{status}	= JSON::PP->new->utf8->decode( $session_info->{status} );
+	$session_info->{data}	= JSON::PP->new->utf8->decode( $session_info->{data} );
 
     return { success => 1, info => $session_info };
 }
@@ -181,7 +181,7 @@ sub update_session {
 
     if (exists $updates->{data}) {
         push @set_clauses, 'data = ?';
-        push @bind_values, JSON->new->utf8->encode($updates->{data} || {});
+        push @bind_values, JSON::PP->new->utf8->encode($updates->{data} || {});
     }
 
     if (exists $updates->{expires_at}) {
