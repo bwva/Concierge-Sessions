@@ -42,7 +42,7 @@ subtest 'Session->new() creates session via backend' => sub {
     my $session = $result->{session};
 
     ok($session->session_id(), 'Session ID accessible via accessor');
-    like($session->session_id(), qr/^[a-f0-9-]+$/, 'Session ID format correct');
+    like($session->session_id(), qr/^[a-f0-9]{40}$/, 'Session ID is 40-char hex string');
     ok($session->created_at(), 'created_at set via accessor');
     ok($session->expires_at(), 'expires_at set via accessor');
     is($session->status()->{state}, 'active', 'Initial state is active');
@@ -304,13 +304,13 @@ subtest 'is_expired() returns true for expired session' => sub {
 
     my $result = $manager->new_session(
         user_id          => 'test_expired',
-        session_timeout  => 1,  # 1 second timeout
+        session_timeout  => 3600,
     );
 
     my $session = $result->{session};
 
-    # Wait for session to expire
-    sleep(2);
+    # Force-expire by setting expires_at to the past (no sleep needed)
+    $session->{expires_at} = time() - 3600;
 
     is($session->is_expired(), 1, 'Session is expired after timeout');
 };
@@ -334,15 +334,15 @@ subtest 'is_expired() handles timeout boundary' => sub {
 
     my $result = $manager->new_session(
         user_id          => 'test_boundary',
-        session_timeout  => 1,  # 1 second timeout
+        session_timeout  => 3600,
     );
 
     my $session = $result->{session};
 
     is($session->is_expired(), 0, 'Session not expired immediately after creation');
 
-    # Wait for session to expire
-    sleep(2);
+    # Force-expire by setting expires_at to the past (no sleep needed)
+    $session->{expires_at} = time() - 3600;
 
     is($session->is_expired(), 1, 'Session expires after timeout period');
 };
@@ -369,13 +369,13 @@ subtest 'is_valid() returns false for expired session' => sub {
 
     my $result = $manager->new_session(
         user_id          => 'test_invalid_expired',
-        session_timeout  => 1,  # 1 second timeout
+        session_timeout  => 3600,
     );
 
     my $session = $result->{session};
 
-    # Wait for session to expire
-    sleep(2);
+    # Force-expire by setting expires_at to the past (no sleep needed)
+    $session->{expires_at} = time() - 3600;
 
     is($session->is_valid(), 0, 'Expired session not valid');
 };
@@ -430,7 +430,7 @@ subtest 'session_id() returns session ID' => sub {
     my $id = $session->session_id();
 
     ok($id, 'session_id returns value');
-    like($id, qr/^[a-f0-9-]+$/, 'Session ID is UUID format');
+    like($id, qr/^[a-f0-9]{40}$/, 'Session ID is 40-char hex string');
 };
 
 subtest 'created_at() returns creation timestamp' => sub {

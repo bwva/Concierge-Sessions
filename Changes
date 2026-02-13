@@ -1,5 +1,36 @@
 Revision history for Concierge-Sessions
 
+v0.8.8 2026-02-13
+    - Switched session ID generation from Crypt::URandom to Crypt::PRNG
+      (random_bytes), aligning with Concierge::Auth::Generators and reducing
+      overall Concierge suite dependencies
+    - CVE-2026-2439: Insecure session ID generation via uuidgen/rand fallback
+      was fixed in v0.8.5; this entry documents the assigned CVE
+
+v0.8.7 2026-02-13
+    - Fixed CPAN tester timeout failures: session expiry in installation
+      tests now mocked via direct SQLite update (no sleep). Real-time
+      timeout tests moved to xt/ (author tests only, skipped under
+      AUTOMATED_TESTING).
+
+v0.8.6 2026-02-12
+    - Rebuilt tarball with GNU tar (fixes PaxHeader issue on CPAN)
+
+v0.8.5 2026-02-12
+    - Security: replaced insecure session ID generation (uuidgen/rand fallback)
+      with cryptographically secure random IDs via Crypt::URandom (160-bit entropy)
+    - Added Crypt::URandom as a dependency
+    - Further widened sliding window test timing margins for slow platforms
+
+v0.8.4 2026-02-12
+    - Fixed integration test timing margins for slow platforms (Windows/Strawberry Perl)
+
+v0.8.3 2026-02-11
+    - Fixed session expiration tests that were timing out too fast
+
+v0.8.2 2026-02-11
+    - Improved documentation
+
 v0.8.1 2026-02-10
     - Initial CPAN release
     - SQLite and File storage backends
@@ -7,3 +38,4 @@ v0.8.1 2026-02-10
     - Sliding window expiration and indefinite sessions
     - Single-session enforcement per user
     - Expired session cleanup
+
