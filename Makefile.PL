@@ -46,6 +46,28 @@ WriteMakefile(
                 web => 'https://github.com/bwva/Concierge-Sessions/issues',
             },
         },
+        provides => {
+            'Concierge::Sessions' => {
+                file    => 'lib/Concierge/Sessions.pm',
+                version => 'v0.9.0',
+            },
+            'Concierge::Sessions::Base' => {
+                file    => 'lib/Concierge/Sessions/Base.pm',
+                version => 'v0.9.0',
+            },
+            'Concierge::Sessions::Session' => {
+                file    => 'lib/Concierge/Sessions/Session.pm',
+                version => 'v0.9.0',
+            },
+            'Concierge::Sessions::SQLite' => {
+                file    => 'lib/Concierge/Sessions/SQLite.pm',
+                version => 'v0.9.0',
+            },
+            'Concierge::Sessions::File' => {
+                file    => 'lib/Concierge/Sessions/File.pm',
+                version => 'v0.9.0',
+            },
+        },
     },
 
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },

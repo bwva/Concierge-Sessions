@@ -1,5 +1,18 @@
 Revision history for Concierge-Sessions
 
+v0.9.0 2026-02-13
+    - Added META provides (resolves CPANTS meta_yml_has_provides)
+    - Added SECURITY.md with vulnerability reporting policy
+      (resolves CPANTS has_security_doc, security_doc_contains_contact)
+    - Added CONTRIBUTING.md with contribution guidelines
+      (resolves CPANTS has_contributing_doc)
+    - Added xt/pod-no-nonascii.t author test to guard against non-ASCII in POD
+    - Fixed stale POD versions in Base.pm, Session.pm, SQLite.pm, File.pm
+    - Bumped all module versions to v0.9.0
+
+v0.8.9 2026-02-13
+    - Removed non-ASCII characters from POD in Files.pm
+
 v0.8.8 2026-02-13
     - Switched session ID generation from Crypt::URandom to Crypt::PRNG
       (random_bytes), aligning with Concierge::Auth::Generators and reducing

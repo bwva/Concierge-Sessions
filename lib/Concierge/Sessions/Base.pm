@@ -1,4 +1,4 @@
-package Concierge::Sessions::Base v0.8.8;
+package Concierge::Sessions::Base v0.9.0;
 use v5.36;
 
 use Crypt::PRNG qw(random_bytes);
@@ -31,7 +31,7 @@ Concierge::Sessions::Base - Base class for session storage backends
 
 =head1 VERSION
 
-version 0.8.7
+v0.9.0
 
 =head1 SYNOPSIS
 
