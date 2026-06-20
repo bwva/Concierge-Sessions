@@ -291,7 +291,7 @@ sub delete_user_session {
 
 sub DESTROY {
     my ($self) = @_;
-    $self->{dbh}->disconnect;
+    $self->{dbh}->disconnect if defined $self->{dbh};
 }
 
 1;
