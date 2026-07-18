@@ -2,13 +2,10 @@
 
 **Version:** 0.11.2
 
-Concierge::Sessions is a comprehensive session management system for Perl applications,
-providing flexible storage backends, sliding window expiration, and application-controlled data storage.
-
-Sessions enable applications to track user actions and maintain state across multiple operations.
-Keep session data in memory for fast access, persist to storage when needed, and maintain continuity
-between user interactions whether in online services, CLI tools, games, time-billing systems, or any
-application that needs to track state over time.
+Concierge::Sessions is a comprehensive session management system for Perl
+applications, maintaining state across multiple operations — in online
+services, CLI tools, games, time-billing systems, or any application that
+needs to track state over time.
 
 ## Features
 
@@ -40,9 +37,10 @@ make install
 - Perl 5.36 or later
 - DBI (for SQLite backend)
 - DBD::SQLite (for SQLite backend)
-- JSON::PP or JSON
+- JSON::PP
 - Time::HiRes
 - File::Spec
+- Crypt::PRNG
 - Test2::V0 (for testing)
 
 ## Quick Start
@@ -89,7 +87,8 @@ my $retrieved = $sessions->get_session($session_id);
 
 ### Sliding Window Expiration
 
-Sessions automatically extend when `save()` is called:
+`save()` is the method used to persist session data to the backend (see
+"Data Access" below); calling it also extends the session automatically:
 
 ```perl
 my $session = $sessions->new_session(
@@ -123,7 +122,11 @@ $app_session->is_expired();  # Always returns false
 
 ### Data Access
 
-All data operations work with the entire data field:
+A session object has its own simple data field in the form of a hashref
+that may store any serializable Perl construct. Data storage operations by
+the session object are strictly limited to inserting and retrieving the
+whole hashref; any modifications to the hashref must be done by the app,
+with the updated hashref then replacing the previous one.
 
 ```perl
 # Get entire data structure
@@ -139,7 +142,7 @@ $data->{cart} = [@items];
 $session->set_data($data);
 
 # Persist to backend (also extends session timeout)
-$session->save();
+$session->save();  # Session is clean again (is_dirty() now false)
 ```
 
 ### Session Lifecycle
