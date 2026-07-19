@@ -63,21 +63,22 @@ my $result = $sessions->new_session(
     },
 );
 
-if ($result->{success}) {
-    my $session = $result->{session};
-    my $session_id = $session->session_id();
-
-    # Read session data
-    my $data_result = $session->get_data();
-    my $data = $data_result->{value};
-
-    # Update session data
-    $data->{cart} = ['item1', 'item2'];
-    $session->set_data($data);
-
-    # Save changes (extends session timeout)
-    $session->save();
+unless ($result->{success}) {
+	return $result; # { success => 0, message => '...' }
 }
+my $session = $result->{session};
+my $session_id = $session->session_id();
+
+# Read session data
+my $data_result = $session->get_data();
+my $data = $data_result->{value};
+
+# Update session data
+$data->{cart} = ['item1', 'item2'];
+$session->set_data($data);
+
+# Save changes (extends session timeout)
+$session->save();
 
 # Retrieve session later
 my $retrieved = $sessions->get_session($session_id);
