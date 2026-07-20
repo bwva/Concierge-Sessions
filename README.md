@@ -50,7 +50,7 @@ use Concierge::Sessions;
 
 # Create session manager
 my $sessions = Concierge::Sessions->new(
-    backend => 'database',
+    backend_class => 'Concierge::Sessions::SQLite',
     storage_dir => '/var/app/sessions',
 );
 
@@ -168,16 +168,16 @@ $sessions->delete_session($session->session_id());
 ### Backend Selection
 
 ```perl
-# Database backend (production, high performance)
+# SQLite backend (production, high performance)
 my $sessions = Concierge::Sessions->new(
-    backend     => 'database',
-    storage_dir => '/var/app/sessions',
+    backend_class => 'Concierge::Sessions::SQLite',
+    storage_dir   => '/var/app/sessions',
 );
 
 # File backend (testing, human-readable)
 my $sessions = Concierge::Sessions->new(
-    backend     => 'file',
-    storage_dir => '/tmp/sessions',
+    backend_class => 'Concierge::Sessions::File',
+    storage_dir   => '/tmp/sessions',
 );
 ```
 
