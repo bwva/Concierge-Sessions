@@ -1,6 +1,6 @@
 Revision history for Concierge-Sessions
 
-v0.11.3  (unreleased)
+v0.11.3  2026-07-23
     - BREAKING: Concierge::Sessions->new's constructor key renamed from
       backend to backend_class, to disambiguate it from the unrelated
       "friendly name" sense of backend used elsewhere in the Concierge
