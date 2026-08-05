@@ -1,6 +1,6 @@
 # Concierge::Sessions - Session Management System
 
-**Version:** 0.11.2
+**Version:** 0.11.3
 
 Concierge::Sessions is a comprehensive session management system for Perl
 applications, maintaining state across multiple operations — in online
